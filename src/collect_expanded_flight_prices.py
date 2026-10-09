@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -67,8 +67,9 @@ def main() -> None:
             "Проверь файл .env в корне проекта."
         )
 
-    collected_at = date.today().isoformat()
-    output_file = DATA_DIR / f"expanded_flight_prices_{collected_at}.jsonl"
+    collected_at = datetime.now(timezone.utc).isoformat()
+    file_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+    output_file = DATA_DIR / f"expanded_flight_prices_{file_timestamp}.jsonl"
 
     requests_total = 0
     records_total = 0
