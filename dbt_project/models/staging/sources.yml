@@ -1,0 +1,40 @@
+version: 2
+
+sources:
+  - name: staging
+    description: "Parsed flight-price observations loaded by the Python pipeline from the Travelpayouts / Aviasales Data API."
+    schema: staging
+    tables:
+      - name: flight_price_observations
+        description: "One row represents one flight-price observation parsed from an API response."
+        columns:
+          - name: observation_id
+            description: "Unique identifier of a price observation."
+            tests:
+              - not_null
+              - unique
+
+          - name: route_key
+            description: "Route in ORIGIN-DESTINATION format, for example MOW-AER."
+            tests:
+              - not_null
+
+          - name: departure_date
+            description: "Scheduled departure date."
+            tests:
+              - not_null
+
+          - name: price
+            description: "Observed offer price in the specified currency."
+            tests:
+              - not_null
+
+          - name: currency_code
+            description: "ISO currency code for the observed price."
+            tests:
+              - not_null
+
+          - name: collected_ts
+            description: "UTC timestamp when the observation was collected."
+            tests:
+              - not_null

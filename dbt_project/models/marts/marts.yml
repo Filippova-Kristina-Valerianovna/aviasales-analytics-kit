@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: mart_price_monitoring_daily_dbt
+    description: >
+      Daily flight-price aggregates by collection date, route,
+      origin, destination, departure date and currency.
+      Counts represent observation rows, not necessarily unique offers.
+      Collection dates follow the PostgreSQL session time zone.
+
+    columns:
+      - name: collected_date
+        description: "Collection date derived from collected_ts."
+        data_tests:
+          - not_null
+
+      - name: route_key
+        description: "Route in ORIGIN-DESTINATION format."
+        data_tests:
+          - not_null
+
+      - name: origin_iata
+        description: "Origin IATA code."
+        data_tests:
+          - not_null
+
+      - name: destination_iata
+        description: "Destination IATA code."
+        data_tests:
+          - not_null
+
+      - name: departure_date
+        description: "Scheduled departure date."
+        data_tests:
+          - not_null
+
+      - name: currency_code
+        description: "Currency code for all prices in the group."
+        data_tests:
+          - not_null
+
+      - name: offers_count
+        description: "Number of observation rows in the daily group."
+        data_tests:
+          - not_null
+
+      - name: min_price
+        description: "Minimum observed price in the daily group."
+
+      - name: avg_price
+        description: "Mean observed price, rounded to two decimal places."
+
+      - name: median_price
+        description: "Continuous 50th percentile of observed prices."
+
+      - name: max_price
+        description: "Maximum observed price in the daily group."
+
+      - name: direct_offers_count
+        description: "Number of observation rows with zero transfers."
+        data_tests:
+          - not_null
+
+      - name: direct_offers_share
+        description: >
+          Share of all observation rows with zero transfers,
+          rounded to four decimal places.
+
+      - name: avg_transfers
+        description: "Mean number of transfers among non-null values."
+
+      - name: avg_duration_minutes
+        description: "Mean duration in minutes among non-null values."
+
+      - name: first_collected_ts
+        description: "Earliest collection timestamp within the daily group."
+
+      - name: last_collected_ts
+        description: "Latest collection timestamp within the daily group."
+
+      - name: min_days_before_departure
+        description: "Minimum difference between departure and collection dates."
+
+      - name: max_days_before_departure
+        description: "Maximum difference between departure and collection dates."
+        

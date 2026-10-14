@@ -25,3 +25,15 @@ Thumbs.db
 
 # Automation logs
 /logs/
+
+
+# dbt generated files
+/dbt_project/target/
+/dbt_project/logs/
+/dbt_project/dbt_packages/
+
+# Local dbt connection profile
+/dbt_project/profiles.yml
+
+# Local Power BI reports
+/dashboards/*.pbix
