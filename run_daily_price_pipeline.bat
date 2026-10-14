@@ -24,5 +24,19 @@ if not "%LOAD_EXIT_CODE%"=="0" (
     exit /b %LOAD_EXIT_CODE%
 )
 
+echo [%date% %time%] Running dbt data tests >> logs\daily_pipeline.log
+
+call "%~dp0dbt_local.bat" test >> logs\daily_pipeline.log 2>&1
+set DBT_EXIT_CODE=%ERRORLEVEL%
+
+if not "%DBT_EXIT_CODE%"=="0" (
+    echo [%date% %time%] ERROR: dbt tests failed. Exit code: %DBT_EXIT_CODE% >> logs\daily_pipeline.log
+    exit /b %DBT_EXIT_CODE%
+)
+
+echo [%date% %time%] dbt data tests completed successfully >> logs\daily_pipeline.log
+
+
 echo [%date% %time%] Daily price pipeline completed successfully >> logs\daily_pipeline.log
 endlocal
+exit /b 0
