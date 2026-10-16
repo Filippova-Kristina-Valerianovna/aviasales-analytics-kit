@@ -37,3 +37,7 @@ Thumbs.db
 
 # Local Power BI reports
 /dashboards/*.pbix
+
+# Downloaded city directory cache
+/data/reference/cities_ru.json
+/data/reference/cities_ru.tmp
