@@ -30,6 +30,18 @@ from telegram.ext import (
     filters,
 )
 
+from route_monitor_ui import (
+    ROUTE_ORIGIN,
+    ROUTE_DESTINATION,
+    ROUTE_MAX_PRICE,
+    route_monitor_start,
+    route_monitor_origin,
+    route_monitor_destination,
+    route_monitor_max_price,
+    route_monitor_cancel,
+    show_monitored_routes,
+)
+
 
 load_dotenv()
 
@@ -42,6 +54,7 @@ MAIN_MENU = ReplyKeyboardMarkup(
         ["✈️ Поиск билетов"],
         ["🔔 Мои подписки", "⭐ Избранное"],
         ["🔔 Создать подписку"],
+        ["➕ Добавить маршрут", "📋 Маршруты"],
     ],
     resize_keyboard=True,
     input_field_placeholder="Выбери действие",
@@ -109,6 +122,10 @@ async def handle_menu(
         await show_subscriptions(update, context)
         return
 
+    if message.text == "📋 Маршруты":
+        await show_monitored_routes(update, context)
+        return
+    
     responses = {
         "✈️ Поиск билетов": (
             "✈️ Здесь будет поиск билетов по маршруту и датам.\n\n"
@@ -191,6 +208,40 @@ def main() -> None:
 
     application.add_handler(build_subscription_conversation())
 
+    route_monitor_conversation = ConversationHandler(
+        entry_points=[
+            MessageHandler(
+                filters.Regex("^➕ Добавить маршрут$"),
+                route_monitor_start,
+            )
+        ],
+        states={
+            ROUTE_ORIGIN: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    route_monitor_origin,
+                )
+            ],
+            ROUTE_DESTINATION: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    route_monitor_destination,
+                )
+            ],
+            ROUTE_MAX_PRICE: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    route_monitor_max_price,
+                )
+            ],
+        },
+        fallbacks=[
+            CommandHandler("cancel", route_monitor_cancel),
+        ],
+    )
+
+    application.add_handler(route_monitor_conversation)
+
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
 
@@ -200,7 +251,6 @@ def main() -> None:
             handle_menu,
         )
     )
-
     print("Запускаем бота. Для остановки нажми Ctrl + C.")
     application.run_polling()
 
