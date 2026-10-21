@@ -19,6 +19,8 @@ from subscriptions_ui import (
 from db import save_user
 from flight_search import build_search_handler
 
+from route_monitor_ui import check_monitored_routes
+
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -55,6 +57,7 @@ MAIN_MENU = ReplyKeyboardMarkup(
         ["🔔 Мои подписки", "⭐ Избранное"],
         ["🔔 Создать подписку"],
         ["➕ Добавить маршрут", "📋 Маршруты"],
+        ["🔎 Проверить маршруты"],
     ],
     resize_keyboard=True,
     input_field_placeholder="Выбери действие",
@@ -208,6 +211,12 @@ def main() -> None:
 
     application.add_handler(build_subscription_conversation())
 
+    application.add_handler(
+        MessageHandler(
+            filters.Regex("^🔎 Проверить маршруты$"),
+            check_monitored_routes,
+        )
+    )
     route_monitor_conversation = ConversationHandler(
         entry_points=[
             MessageHandler(
