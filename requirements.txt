@@ -112,7 +112,7 @@ websocket-client @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot
 wheel==0.47.0
 widgetsnbextension @ file:///C:/Users/task_178878314257535/croot/widgetsnbextension_1788783345415/work
 win_inet_pton @ file:///C:/miniconda3/conda-bld/win_inet_pton_1761746278300/work
-python-telegram-bot==22.8
+python-telegram-bot[job-queue]==22.8
 python-dotenv
 psycopg[binary]
 requests

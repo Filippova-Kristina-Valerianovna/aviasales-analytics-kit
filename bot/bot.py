@@ -3,6 +3,8 @@ import asyncio
 
 from favorites_ui import build_favorites_handlers
 
+from route_monitor_ui import check_all_routes_job
+
 from subscriptions_ui import (
     ORIGIN,
     DESTINATION,
@@ -265,6 +267,12 @@ def main() -> None:
         )
     )
     print("Запускаем бота. Для остановки нажми Ctrl + C.")
+    application.job_queue.run_repeating(
+        check_all_routes_job,
+        interval=6 * 60 * 60,
+        first=30,
+    )
+
     application.run_polling()
 
 

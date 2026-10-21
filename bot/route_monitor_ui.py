@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
+
 from cities import city_label, find_cities
 from db import get_connection
 from route_monitor import create_monitored_route, list_monitored_routes
@@ -364,3 +365,101 @@ async def check_monitored_routes(
             "Попробуй проверить позже.",
             reply_markup=MAIN_MENU,
         )
+
+from route_monitor import list_all_active_routes_with_chats
+
+
+async def check_all_routes_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        routes = list_all_active_routes_with_chats()
+    except Exception as error:
+        print("Ошибка фоновой проверки маршрутов:", type(error).__name__, error)
+        return
+
+    today = date.today()
+
+    for route in routes:
+        (
+            route_id,
+            user_id,
+            chat_id,
+            origin,
+            destination,
+            max_price,
+            days_ahead,
+            last_notified_price,
+            last_notified_date,
+        ) = route
+
+        best_price = None
+        best_date = None
+
+        for day_offset in range(1, days_ahead + 1, 3):
+            check_date = today + timedelta(days=day_offset)
+
+            try:
+                _, flights = await asyncio.to_thread(
+                    fetch_logged_flights,
+                    telegram_user_id=user_id,
+                    origin=origin,
+                    destination=destination,
+                    departure_date=check_date.isoformat(),
+                )
+            except Exception as error:
+                print(
+                    f"Фоновая проверка {origin} → {destination} "
+                    f"на {check_date.isoformat()} не удалась:",
+                    type(error).__name__,
+                    error,
+                )
+                continue
+
+            for flight in flights:
+                if not isinstance(flight, dict):
+                    continue
+
+                price = flight.get("price")
+                if not isinstance(price, (int, float)):
+                    continue
+
+                if best_price is None or price < best_price:
+                    best_price = price
+                    best_date = check_date
+
+        if best_price is None:
+            continue
+
+        already_notified = (
+            last_notified_price is not None
+            and Decimal(str(best_price)) == last_notified_price
+            and best_date == last_notified_date
+        )
+
+        if best_price > float(max_price) or already_notified:
+            continue
+
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"🎉 Нашла выгодный билет:\n\n"
+                    f"{origin} → {destination}\n"
+                    f"Дата: {best_date.isoformat()}\n"
+                    f"Цена: {best_price:.0f} ₽\n"
+                    f"Порог: {max_price:.0f} ₽"
+                ),
+            )
+
+            with get_connection() as conn:
+                update_monitoring_result(
+                    conn,
+                    route_id,
+                    Decimal(str(best_price)),
+                    best_date,
+                )
+        except Exception as error:
+            print(
+                "Ошибка отправки уведомления:",
+                type(error).__name__,
+                error,
+            )

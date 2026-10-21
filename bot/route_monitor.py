@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import psycopg
 
+from db import get_connection
 
 def create_monitored_route(
     conn: psycopg.Connection,
@@ -90,3 +91,20 @@ def update_monitoring_result(
             (price, depart_date, route_id),
         )
         conn.commit()
+
+def list_all_active_routes_with_chats() -> list[tuple]:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.id, r.user_id, u.chat_id, r.origin_code,
+                       r.destination_code, r.max_price, r.days_ahead,
+                       r.last_notified_price, r.last_notified_date
+                FROM flight_bot.monitored_routes r
+                JOIN flight_bot.users u
+                  ON u.telegram_user_id = r.user_id
+                WHERE r.is_active = TRUE
+                ORDER BY r.created_at
+                """
+            )
+            return cursor.fetchall()
