@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from telegram import Update
@@ -43,14 +43,23 @@ async def subscription_depart_date(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
+    from datetime import datetime
+
     try:
-        depart_date = date.fromisoformat(update.message.text.strip())
+        depart_date = datetime.strptime(
+            update.message.text.strip(),
+            "%d.%m.%Y",
+        ).date()
     except ValueError:
-        await update.message.reply_text("Не понял дату. Пример: 2026-12-01")
+        await update.message.reply_text(
+            "Введи дату в формате ДД.ММ.ГГГГ. Например: 01.12.2026"
+        )
         return DEPART_DATE
 
     if depart_date < date.today():
-        await update.message.reply_text("Дата уже прошла. Введи будущую дату:")
+        await update.message.reply_text(
+            "Дата уже прошла. Введи будущую дату:"
+        )
         return DEPART_DATE
 
     context.user_data["subscription_depart_date"] = depart_date
