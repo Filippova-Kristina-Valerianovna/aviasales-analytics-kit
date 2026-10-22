@@ -226,33 +226,46 @@ def main() -> None:
     route_monitor_conversation = ConversationHandler(
         entry_points=[
             MessageHandler(
-                filters.Regex("^➕ Добавить маршрут$"),
+                filters.Regex(r"^(?:[^\w\s]+\s*)?Добавить маршрут\s*$"),
                 route_monitor_start,
-            )
+            ),
         ],
         states={
             ROUTE_ORIGIN: [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     route_monitor_origin,
-                )
+                ),
+            ],
+            ROUTE_ORIGIN_SELECT: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    route_monitor_origin_select,
+                ),
             ],
             ROUTE_DESTINATION: [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     route_monitor_destination,
-                )
+                ),
+            ],
+            ROUTE_DESTINATION_SELECT: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    route_monitor_destination_select,
+                ),
             ],
             ROUTE_MAX_PRICE: [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     route_monitor_max_price,
-                )
+                ),
             ],
         },
         fallbacks=[
             CommandHandler("cancel", route_monitor_cancel),
         ],
+        allow_reentry=True,
     )
 
     application.add_handler(route_monitor_conversation)
